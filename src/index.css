@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Poppins:wght@300;400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-love-dark via-love-purple to-love-violet min-h-screen;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-love-rose to-love-pink text-white font-semibold py-3 px-8 rounded-full hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-love-gold/50;
+  }
+  
+  .btn-secondary {
+    @apply glass-effect text-white font-semibold py-3 px-8 rounded-full hover:bg-white/20 transition-all duration-300;
+  }
+}
+
