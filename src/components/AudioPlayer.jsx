@@ -10,15 +10,15 @@ import { FaPlay, FaPause, FaForward, FaBackward, FaVolumeUp, FaVolumeMute } from
 
 // Lista de canciones (reemplaza con las rutas reales de los archivos de audio)
 const playlist = [
-  { id: 1, title: 'Baile Inolvidable', artist: 'Unknown', url: '/audio/BaileInolvidable.mp3' },
-  { id: 2, title: 'Berghain', artist: 'Unknown', url: '/audio/Berghain.mp3' },
-  { id: 3, title: 'Con Toda Libertad', artist: 'Unknown', url: '/audio/ConTodaLibertad.mp3' },
-  { id: 4, title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', url: '/audio/DieWithASmile.mp3' },
-  { id: 5, title: 'Dulce Soledad', artist: 'Enjambre', url: '/audio/DulceSoledad.mp3' },
-  { id: 6, title: 'Ojitos Lindos', artist: 'Bad Bunny', url: '/audio/OjitosLindos.mp3' },
-  { id: 7, title: 'Si Te Pillara', artist: 'Unknown', url: '/audio/SiTePillara.mp3' },
-  { id: 8, title: 'Tu Misterioso Alguien', artist: 'Miranda!', url: '/audio/TuMisteriosoAlguien.mp3' },
-  { id: 9, title: 'Veo En Ti La Luz', artist: 'Tangled', url: '/audio/VeoEnTiLaLuz.mp3' },
+  { id: 1, title: 'Baile Inolvidable', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/BaileInolvidable.mp3` },
+  { id: 2, title: 'Berghain', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/Berghain.mp3` },
+  { id: 3, title: 'Con Toda Libertad', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/ConTodaLibertad.mp3` },
+  { id: 4, title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', url: `${import.meta.env.BASE_URL}audio/DieWithASmile.mp3` },
+  { id: 5, title: 'Dulce Soledad', artist: 'Enjambre', url: `${import.meta.env.BASE_URL}audio/DulceSoledad.mp3` },
+  { id: 6, title: 'Ojitos Lindos', artist: 'Bad Bunny', url: `${import.meta.env.BASE_URL}audio/OjitosLindos.mp3` },
+  { id: 7, title: 'Si Te Pillara', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/SiTePillara.mp3` },
+  { id: 8, title: 'Tu Misterioso Alguien', artist: 'Miranda!', url: `${import.meta.env.BASE_URL}audio/TuMisteriosoAlguien.mp3` },
+  { id: 9, title: 'Veo En Ti La Luz', artist: 'Tangled', url: `${import.meta.env.BASE_URL}audio/VeoEnTiLaLuz.mp3` },
 ];
 
 const AudioPlayer = () => {

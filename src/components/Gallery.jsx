@@ -161,7 +161,7 @@ const Gallery = () => {
               style={{ width: `${100 / totalItems}%` }}
             >
               <img
-                src={`/images/fulls/${story.images[0]}`}
+                src={`${import.meta.env.BASE_URL}images/fulls/${story.images[0]}`}
                 alt="Memory"
                 className="w-full h-full object-cover"
               />
