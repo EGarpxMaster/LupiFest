@@ -4,9 +4,10 @@ import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 // --- DATA PREPARATION ---
 
 // 1. Image List
-const allFulls = [
-  "1.jpg", "2.jpg", "3.jpg", "3.5.jpg", "4.jpg", "5.jpg", "5.1.jpg", "6.jpg", "8.jpg", "8.1.jpg", "8.2.jpg", "9.jpg", "10.jpg", "11.jpg", "12.jpg", "12.1.jpg", "13.jpg", "14.jpg", "14.1.jpg", "14.2.jpg", "14.3.jpg", "14.4.jpg", "14.5.jpg", "15.jpg", "16.jpg", "16.01.jpg", "16.1.jpg", "16.2.jpg", "16.3.jpg", "17.jpg", "17.1.jpg", "17.2.jpg", "18.1.jpg", "20.1.jpg", "20.2.jpg", "24.1.jpg", "24.2.jpg", "26.1.jpg", "26.2.jpg", "27.1.jpg", "30.jpg", "30.1.jpg", "30.2.jpg", "30.3.jpg", "30.4.jpg", "30.5.jpg", "30.6.jpg", "30.7.jpg", "30.8.jpg", "30.9.jpg", "31.jpg", "31.1.jpg", "32.jpg", "32.1.jpg", "32.2.jpg", "33.jpg", "33.1.jpg", "33.2.jpg", "33.3.jpg", "34.jpg", "35.jpg", "35.1.jpg", "35.2.jpg", "36.jpg", "37.jpg", "37.1.jpg", "37.2.jpg", "38.jpg"
-];
+// 1. Image Data
+const imageModules = import.meta.glob('../assets/images/fulls/*.jpg', { eager: true, import: 'default' });
+
+const allFulls = Object.keys(imageModules).map(path => path.split('/').pop());
 
 // 2. Group Images Logic
 function groupImages(images) {
@@ -161,7 +162,7 @@ const Gallery = () => {
               style={{ width: `${100 / totalItems}%` }}
             >
               <img
-                src={`${import.meta.env.BASE_URL}images/fulls/${story.images[0]}`}
+                src={imageModules[`../assets/images/fulls/${story.images[0]}`]}
                 alt="Memory"
                 className="w-full h-full object-cover"
               />
