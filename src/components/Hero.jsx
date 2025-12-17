@@ -5,44 +5,50 @@ import gsap from 'gsap';
 const Hero = ({ onHide }) => {
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
-    const tl = gsap.timeline();
+    const tl = gsap.timeline({
+      onComplete: () => onHide && onHide()
+    });
 
-    tl.from(titleRef.current, {
-      opacity: 0,
-      y: 50,
-      duration: 2,
-      ease: 'power3.out'
-    })
-      .to(titleRef.current, {
-        opacity: 1
-      }, "<")
-      .from(subtitleRef.current, {
-        opacity: 0,
-        y: 30,
-        duration: 2,
+    tl.fromTo(titleRef.current,
+      { opacity: 0.2 },
+      {
+        opacity: 1,
+        duration: 1,
         ease: 'power3.out'
-      }, '-=1.0')
-      .to(subtitleRef.current, {
-        opacity: 1
-      }, "<");
+      }
+    )
+      .fromTo(subtitleRef.current,
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: 'power3.out'
+        }
+      )
+      .to({}, { duration: 1 }) // Wait 3s with everything visible
+      .to(sectionRef.current, {
+        opacity: 0,
+        duration: 1,
+        ease: 'power1.in'
+      });
   }, []);
 
   return (
     <motion.section
+      ref={sectionRef}
       id="hero"
       className="min-h-screen flex items-center justify-center pt-20 px-4 relative"
       initial={{ opacity: 1 }}
-      animate={{ opacity: [1, 1, 0] }}
-      transition={{ duration: 15, times: [0, 0.9, 1], ease: 'easeInOut' }}
-      onAnimationComplete={() => onHide && onHide()}
     >
       <div className="container mx-auto text-center z-10">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 1 }}
           className="mb-8"
         >
           <div className="text-8xl mb-4 animate-pulse-slow">
