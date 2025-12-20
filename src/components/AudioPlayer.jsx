@@ -8,28 +8,17 @@ import { FaPlay, FaPause, FaForward, FaBackward, FaVolumeUp, FaVolumeMute } from
 // Let's do imports first.
 
 
-// Import audio files
-import song1 from '../assets/audio/BaileInolvidable.mp3';
-import song2 from '../assets/audio/Berghain.mp3';
-import song3 from '../assets/audio/ConTodaLibertad.mp3';
-import song4 from '../assets/audio/DieWithASmile.mp3';
-import song5 from '../assets/audio/DulceSoledad.mp3';
-import song6 from '../assets/audio/OjitosLindos.mp3';
-import song7 from '../assets/audio/SiTePillara.mp3';
-import song8 from '../assets/audio/TuMisteriosoAlguien.mp3';
-import song9 from '../assets/audio/VeoEnTiLaLuz.mp3';
-
 // Lista de canciones
 const playlist = [
-  { id: 1, title: 'Baile Inolvidable', artist: 'Unknown', url: song1 },
-  { id: 2, title: 'Berghain', artist: 'Unknown', url: song2 },
-  { id: 3, title: 'Con Toda Libertad', artist: 'Unknown', url: song3 },
-  { id: 4, title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', url: song4 },
-  { id: 5, title: 'Dulce Soledad', artist: 'Enjambre', url: song5 },
-  { id: 6, title: 'Ojitos Lindos', artist: 'Bad Bunny', url: song6 },
-  { id: 7, title: 'Si Te Pillara', artist: 'Unknown', url: song7 },
-  { id: 8, title: 'Tu Misterioso Alguien', artist: 'Miranda!', url: song8 },
-  { id: 9, title: 'Veo En Ti La Luz', artist: 'Tangled', url: song9 },
+  { id: 1, title: 'Baile Inolvidable', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/BaileInolvidable.mp3` },
+  { id: 2, title: 'Berghain', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/Berghain.mp3` },
+  { id: 3, title: 'Con Toda Libertad', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/ConTodaLibertad.mp3` },
+  { id: 4, title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', url: `${import.meta.env.BASE_URL}audio/DieWithASmile.mp3` },
+  { id: 5, title: 'Dulce Soledad', artist: 'Enjambre', url: `${import.meta.env.BASE_URL}audio/DulceSoledad.mp3` },
+  { id: 6, title: 'Ojitos Lindos', artist: 'Bad Bunny', url: `${import.meta.env.BASE_URL}audio/OjitosLindos.mp3` },
+  { id: 7, title: 'Si Te Pillara', artist: 'Unknown', url: `${import.meta.env.BASE_URL}audio/SiTePillara.mp3` },
+  { id: 8, title: 'Tu Misterioso Alguien', artist: 'Miranda!', url: `${import.meta.env.BASE_URL}audio/TuMisteriosoAlguien.mp3` },
+  { id: 9, title: 'Veo En Ti La Luz', artist: 'Tangled', url: `${import.meta.env.BASE_URL}audio/VeoEnTiLaLuz.mp3` },
 ];
 
 const AudioPlayer = () => {

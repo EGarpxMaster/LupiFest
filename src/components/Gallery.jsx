@@ -1,13 +1,22 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 
 // --- DATA PREPARATION ---
 
 // 1. Image List
 // 1. Image Data
-const imageModules = import.meta.glob('../assets/images/fulls/*.jpg', { eager: true, import: 'default' });
-
-const allFulls = Object.keys(imageModules).map(path => path.split('/').pop());
+const allFulls = [
+  "10.jpg", "11.jpg", "12.1.jpg", "12.jpg", "13.jpg",
+  "14.1.jpg", "14.2.jpg", "14.3.jpg", "14.4.jpg", "14.5.jpg", "14.jpg",
+  "15.jpg", "16.01.jpg", "16.1.jpg", "16.2.jpg", "16.3.jpg", "16.jpg",
+  "17.1.jpg", "17.2.jpg", "17.jpg", "18.1.jpg", "1.jpg", "20.1.jpg", "20.2.jpg",
+  "24.1.jpg", "24.2.jpg", "26.1.jpg", "26.2.jpg", "27.1.jpg", "2.jpg",
+  "30.1.jpg", "30.2.jpg", "30.3.jpg", "30.4.jpg", "30.5.jpg", "30.6.jpg", "30.7.jpg", "30.8.jpg", "30.9.jpg", "30.jpg",
+  "31.1.jpg", "31.jpg", "32.1.jpg", "32.2.jpg", "32.jpg",
+  "33.1.jpg", "33.2.jpg", "33.3.jpg", "33.jpg", "34.jpg", "35.1.jpg", "35.2.jpg", "3.5.jpg", "35.jpg",
+  "36.jpg", "37.1.jpg", "37.2.jpg", "37.jpg", "38.jpg", "3.jpg", "4.jpg",
+  "5.1.jpg", "5.jpg", "6.jpg", "8.1.jpg", "8.2.jpg", "8.jpg", "9.jpg"
+];
 
 // 2. Group Images Logic
 function groupImages(images) {
@@ -65,47 +74,80 @@ const poemLines = [
   "Eres tú."
 ];
 
-// Force groups to fit poem lines by merging
-while (imageGroups.length > poemLines.length) {
-  // Find the smallest group and merge it with its neighbor
-  let minIndex = 0;
-  for (let i = 1; i < imageGroups.length - 1; i++) {
-    if (imageGroups[i].length < imageGroups[minIndex].length) {
-      minIndex = i;
-    }
-  }
-  // Merge current with next
-  if (minIndex < imageGroups.length - 1) {
-    imageGroups[minIndex] = [...imageGroups[minIndex], ...imageGroups[minIndex + 1]];
-    imageGroups.splice(minIndex + 1, 1);
-  } else {
-    // If last group is smallest, merge with previous
-    imageGroups[minIndex - 1] = [...imageGroups[minIndex - 1], ...imageGroups[minIndex]];
-    imageGroups.splice(minIndex, 1);
-  }
-}
+// 4. Map Lines to Image Groups - 1:1 Mapping (One text box per image)
+const flatImages = imageGroups.flat();
 
-// 4. Map Lines to Image Groups
-const storyData = poemLines.map((text, index) => {
-  const groupIndex = Math.floor((index / poemLines.length) * imageGroups.length);
+const storyData = flatImages.map((img, index) => {
+  // Distribute poem lines across all images
+  const textIndex = Math.floor((index / flatImages.length) * poemLines.length);
   return {
     id: index,
-    text,
-    images: imageGroups[groupIndex] || imageGroups[0]
+    text: poemLines[textIndex] || poemLines[poemLines.length - 1], // Fallback to last line
+    images: [img] // Strict 1 image per card
   };
 });
 
 // --- COMPONENTS ---
 
-const WheelItem = ({ story }) => {
+const SkeletonImage = ({ src, alt, className }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
-    <div className="h-[50vh] flex items-center justify-center p-6 snap-center">
+    <div className={`relative ${className} bg-gray-900 overflow-hidden`}>
+      {/* Skeleton / Placeholder */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-white/10 animate-pulse z-10" />
+      )}
+
+      {/* Actual Image */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className={`w-full h-full object-cover transition-opacity duration-700 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        onLoad={() => setIsLoaded(true)}
+      />
+    </div>
+  );
+};
+
+const WheelItem = ({ story }) => {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  // Ferris Wheel Logic with C-Shape Arc (Semicircle right-to-left):
+  // - x: Starts Right (25vw), Arcs IN Left (-10vw) at center to meet image, Ends Right (25vw).
+  // - Radius: approx 1/4 screen width effective movement.
+
+  const x = useTransform(scrollYProgress, [0, 0.5, 1], ["25vw", "-10vw", "25vw"]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [300, 0, -300]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.85, 1, 0.85]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const z = useTransform(scrollYProgress, [0, 0.5, 1], [-200, 0, -200]);
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{
+        x,           // C-Shape Arc
+        y,           // Vertical movement
+        z,           // Depth movement
+        scale,       // Size change
+        opacity,     // Fade at edges
+        rotateX: 0   // KEEP FLAT
+      }}
+      className="h-[50vh] flex items-center justify-center p-6 snap-center origin-center"
+    >
       <div className="bg-love-dark/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl max-w-sm text-center">
         <p className="text-2xl text-white font-romantic leading-relaxed drop-shadow-md">
           "{story.text}"
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -117,71 +159,65 @@ const Gallery = () => {
     container: containerRef,
   });
 
-  // Smooth out the scroll progress for a "fluid gear" feel
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 70,
-    damping: 20,
-    restDelta: 0.001
-  });
-
   const totalItems = storyData.length;
-  // Map vertical scroll progress to horizontal translation
-  // If progress is 0 (Top), x should be 0%.
-  // If progress is 1 (Bottom), x should be - (N-1)/N * 100 %.
-  // The `x` transform percentage is relative to the element's own width.
-  // The track has a width of `totalItems * 100%` (relative to its parent `w-1/2`).
-  // To show image `k`, we need to shift by `k` times the width of one image.
-  // One image width is `100%` of the parent container, which is `1/totalItems` of the track's total width.
-  // So, to shift by `k` images, `x` should be `-(k / totalItems) * 100%`.
-  // When scrollYProgress is 0, k=0, x=0%.
-  // When scrollYProgress is 1, k=totalItems-1, x = -((totalItems - 1) / totalItems) * 100%.
-  const finalXPercentage = -((totalItems - 1) / totalItems) * 100;
-
-  const x = useTransform(smoothProgress, [0, 1], ["0%", `${finalXPercentage}%`]);
 
   return (
     <section id="gallery" className="relative h-screen flex flex-row overflow-hidden bg-transparent">
 
       {/* 
-        LEFT COLUMN: IMAGE CAROUSEL (Receiver) 
-        - Horizontal Scroll View linked to Right Scroll
-        - No scaling, pure translation
+        LEFT COLUMN: IMAGE STACK (Receiver) 
+        - Absolute positioning
+        - Opacity driven by scroll progress to ensure 1:1 match with text
       */}
       <div className="w-1/2 h-full relative overflow-hidden">
-        <motion.div
-          className="flex h-full"
-          style={{
-            x, // Driven directly by scroll progress (Linear 1:1)
-            width: `${totalItems * 100}%`
-          }}
-        >
-          {storyData.map((story, i) => (
-            <div
+        {storyData.map((story, i) => {
+          // Calculate visibility range for this image
+          // It should be visible when the corresponding text box is roughly in the center
+          // Scroll Progress goes 0 to 1.
+          // Item i is centered roughly at i / N? No, scroll is continuous.
+          // Let's us useTransform to map scrollYProgress to opacity based on index.
+
+          // Simple discrete visibility: if we are in the "zone" for item i.
+          // Zone size = 1 / totalItems.
+          const step = 1 / totalItems;
+          const start = (i * step); // Start of this item's zone
+          const center = start + (step / 2); // Center of zone
+          const end = start + step; // End of zone
+
+          // We want it visible when we are near 'center'.
+          // A bit of overlap (crossfade) is nice, or strict cut? User said "only one image".
+          // Strict cut logic:
+          const isVisible = useTransform(scrollYProgress, (val) => {
+            // Map 0-1 to 0-(totalItems-1)
+            const activeIndex = Math.round(val * (totalItems - 1));
+            return activeIndex === i ? 1 : 0;
+          });
+
+          return (
+            <motion.div
               key={i}
-              className="h-full flex-shrink-0 relative"
-              style={{ width: `${100 / totalItems}%` }}
+              className="absolute inset-0 w-full h-full"
+              style={{ opacity: isVisible }}
             >
-              <img
-                src={imageModules[`../assets/images/fulls/${story.images[0]}`]}
+              <SkeletonImage
+                src={`${import.meta.env.BASE_URL}images/fulls/${story.images[0]}`}
                 alt="Memory"
-                className="w-full h-full object-cover"
+                className="w-full h-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-            </div>
-          ))}
-        </motion.div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* 
         RIGHT COLUMN: TEXT WHEEL (Driver)
         - Vertical Scroll Picker
-        - Drives synchronization via useScroll
-        - Visual "Wheel" effect
       */}
       <div
         ref={containerRef}
-        className="w-1/2 h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar"
-        style={{ scrollBehavior: 'smooth' }} // Enhance snap feel
+        className="w-1/2 h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar perspective-container"
+        style={{ scrollBehavior: 'smooth', perspective: '1000px' }} // Enhance snap feel + 3D
       >
         {/* Spacers to center first and last items */}
         <div className="h-[25vh]" />
