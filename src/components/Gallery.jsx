@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 
 // --- DATA PREPARATION ---
 
@@ -111,7 +111,7 @@ const SkeletonImage = ({ src, alt, className }) => {
         src={src}
         alt={alt}
         loading="lazy"
-        className={`w-full h-full object-cover transition-opacity duration-700 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'
+        className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
@@ -120,18 +120,26 @@ const SkeletonImage = ({ src, alt, className }) => {
   );
 };
 
-const WheelItem = ({ story }) => {
+const WheelItem = ({ story, index, onActive, containerRef }) => {
   const ref = useRef(null);
+  const isInView = useInView(ref, {
+    margin: "-45% 0px -45% 0px", // Relaxed slightly to ensure trigger
+    amount: "some" // Trigger as soon as any part enters this zone
+  });
+
+  useEffect(() => {
+    if (isInView) {
+      onActive(index);
+    }
+  }, [isInView, index, onActive]);
+
   const { scrollYProgress } = useScroll({
     target: ref,
+    container: containerRef, // Explicitly track relative to the scrolling parent
     offset: ["start end", "end start"]
   });
 
-  // Ferris Wheel Logic with C-Shape Arc (Semicircle right-to-left):
-  // - x: Starts Right (25vw), Arcs IN Left (-10vw) at center to meet image, Ends Right (25vw).
-  // - Radius: approx 1/4 screen width effective movement.
-
-  const x = useTransform(scrollYProgress, [0, 0.5, 1], ["25vw", "-10vw", "25vw"]);
+  const x = useTransform(scrollYProgress, [0, 0.5, 1], ["25vw", "0vw", "25vw"]);
   const y = useTransform(scrollYProgress, [0, 0.5, 1], [300, 0, -300]);
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.85, 1, 0.85]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
@@ -152,7 +160,7 @@ const WheelItem = ({ story }) => {
     >
       <div className="bg-love-dark/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl max-w-sm text-center">
         <p className="text-2xl text-white font-romantic leading-relaxed drop-shadow-md">
-          "{story.text}"
+          {story.text}
         </p>
       </div>
     </motion.div>
@@ -161,61 +169,32 @@ const WheelItem = ({ story }) => {
 
 const Gallery = () => {
   const containerRef = useRef(null);
-
-  // Track scroll progress of the Right Container (0 to 1)
-  const { scrollYProgress } = useScroll({
-    container: containerRef,
-  });
-
-  const totalItems = storyData.length;
+  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <section id="gallery" className="relative h-screen flex flex-row overflow-hidden bg-transparent">
 
       {/* 
         LEFT COLUMN: IMAGE STACK (Receiver) 
-        - Absolute positioning
-        - Opacity driven by scroll progress to ensure 1:1 match with text
+        - State-driven opacity (Observer) for perfect sync
       */}
       <div className="w-1/2 h-full relative overflow-hidden">
-        {storyData.map((story, i) => {
-          // Calculate visibility range for this image
-          // It should be visible when the corresponding text box is roughly in the center
-          // Scroll Progress goes 0 to 1.
-          // Item i is centered roughly at i / N? No, scroll is continuous.
-          // Let's us useTransform to map scrollYProgress to opacity based on index.
-
-          // Simple discrete visibility: if we are in the "zone" for item i.
-          // Zone size = 1 / totalItems.
-          const step = 1 / totalItems;
-          const start = (i * step); // Start of this item's zone
-          const center = start + (step / 2); // Center of zone
-          const end = start + step; // End of zone
-
-          // We want it visible when we are near 'center'.
-          // A bit of overlap (crossfade) is nice, or strict cut? User said "only one image".
-          // Strict cut logic:
-          const isVisible = useTransform(scrollYProgress, (val) => {
-            // Map 0-1 to 0-(totalItems-1)
-            const activeIndex = Math.round(val * (totalItems - 1));
-            return activeIndex === i ? 1 : 0;
-          });
-
-          return (
-            <motion.div
-              key={i}
-              className="absolute inset-0 w-full h-full"
-              style={{ opacity: isVisible }}
-            >
-              <SkeletonImage
-                src={`${import.meta.env.BASE_URL}images/fulls/${story.images[0]}`}
-                alt="Memory"
-                className="w-full h-full"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-            </motion.div>
-          );
-        })}
+        {storyData.map((story, i) => (
+          <motion.div
+            key={i}
+            className="absolute inset-0 w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: i === activeIndex ? 1 : 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }} // Smooth switch transition
+          >
+            <SkeletonImage
+              src={`${import.meta.env.BASE_URL}images/fulls/${story.images[0]}`}
+              alt="Memory"
+              className="w-full h-full"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+          </motion.div>
+        ))}
       </div>
 
       {/* 
@@ -225,13 +204,18 @@ const Gallery = () => {
       <div
         ref={containerRef}
         className="w-1/2 h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar perspective-container"
-        style={{ scrollBehavior: 'smooth', perspective: '1000px' }} // Enhance snap feel + 3D
+        style={{ scrollBehavior: 'smooth', perspective: '1000px' }}
       >
-        {/* Spacers to center first and last items */}
         <div className="h-[25vh]" />
 
         {storyData.map((story, index) => (
-          <WheelItem key={index} story={story} />
+          <WheelItem
+            key={index}
+            story={story}
+            index={index}
+            onActive={setActiveIndex}
+            containerRef={containerRef}
+          />
         ))}
 
         <div className="h-[25vh]" />
