@@ -15,7 +15,7 @@ const rawStoryData = [
 
   // II. Tus "Pequeñas" Locuras
   { text: "Me enamoré de tus historias infinitas.", img: "9.jpg" },
-  { text: "Y de tu obsesión por Gossip Girl (que ya me sé de memoria).", img: "12.jpg" },
+  { text: "Y de tu obsesión por Gossip Girl (ahora también mía).", img: "12.jpg" },
   { text: "De ese ritual sagrado de limpiar el polvo de la cama...", img: "14.1.jpg" },
   { text: "...aunque a veces solo tú veas ese polvo.", img: "14.2.jpg" },
   { text: "Amo cuando cantas con ese tono dramático:", img: "17.jpg" },
@@ -41,7 +41,7 @@ const rawStoryData = [
 
   // IV. Aventuras en Monterrey y Montañas
   { text: "Qué gran viaje fue Monterrey.", img: "13.jpg" },
-  { text: "Conquistando alturas (aunque te canses).", img: "16.jpg" },
+  { text: "Conquistando alturas (aunque te canses :P).", img: "16.jpg" },
   { text: "Entre montañas inmensas y cielos azules.", img: "16.1.jpg" },
   { text: "Tú, posando como si fueras dueña del cerro.", img: "16.2.jpg" },
   { text: "(Y yo, tomando la foto, por supuesto).", img: "16.3.jpg" },
@@ -122,9 +122,11 @@ const SkeletonImage = ({ src, alt, className }) => {
 
 const WheelItem = ({ story, index, onActive, containerRef }) => {
   const ref = useRef(null);
+
+  // Use Observer for precise Image Sync (triggers when text hits center)
   const isInView = useInView(ref, {
-    margin: "-45% 0px -45% 0px", // Relaxed slightly to ensure trigger
-    amount: "some" // Trigger as soon as any part enters this zone
+    margin: "-48% 0px -48% 0px", // Tight center trigger for exact sync
+    amount: 0
   });
 
   useEffect(() => {
@@ -133,30 +135,43 @@ const WheelItem = ({ story, index, onActive, containerRef }) => {
     }
   }, [isInView, index, onActive]);
 
+  // Scroll Progress logic for Text Animation (Visuals only)
   const { scrollYProgress } = useScroll({
     target: ref,
-    container: containerRef, // Explicitly track relative to the scrolling parent
+    container: containerRef, // Explicit relative tracking
     offset: ["start end", "end start"]
   });
 
-  const x = useTransform(scrollYProgress, [0, 0.5, 1], ["25vw", "0vw", "25vw"]);
-  const y = useTransform(scrollYProgress, [0, 0.5, 1], [300, 0, -300]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.85, 1, 0.85]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const z = useTransform(scrollYProgress, [0, 0.5, 1], [-200, 0, -200]);
+  // Smooth Spring Physics (No "golpe")
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 20,
+    mass: 0.5
+  });
+
+  // Circular "Ferris Wheel" Trajectory
+  // Rotate: Tilts as it moves up/down (-45deg to 45deg)
+  const rotateX = useTransform(smoothProgress, [0, 0.5, 1], [45, 0, -45]);
+  const rotateZ = useTransform(smoothProgress, [0, 0.5, 1], [-10, 0, 10]);
+
+  // X/Y/Z follow the arc
+  const y = useTransform(smoothProgress, [0, 0.5, 1], [400, 0, -400]);
+  const z = useTransform(smoothProgress, [0, 0.5, 1], [-300, 0, -300]);
+  const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const scale = useTransform(smoothProgress, [0, 0.5, 1], [0.8, 1.1, 0.8]);
 
   return (
     <motion.div
       ref={ref}
       style={{
-        x,           // C-Shape Arc
-        y,           // Vertical movement
-        z,           // Depth movement
-        scale,       // Size change
-        opacity,     // Fade at edges
-        rotateX: 0   // KEEP FLAT
+        y,
+        z,
+        rotateX,     // 3D Tilt for wheel effect
+        rotateZ,     // Slight curvature
+        scale,
+        opacity,
       }}
-      className="h-[50vh] flex items-center justify-center p-6 snap-center origin-center"
+      className="h-[50vh] flex items-center justify-center p-6 snap-center origin-center perspective-[1000px]"
     >
       <div className="bg-love-dark/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl max-w-sm text-center">
         <p className="text-2xl text-white font-romantic leading-relaxed drop-shadow-md">
@@ -199,7 +214,7 @@ const Gallery = () => {
 
       {/* 
         RIGHT COLUMN: TEXT WHEEL (Driver)
-        - Vertical Scroll Picker
+        - Native Scroll with Snap
       */}
       <div
         ref={containerRef}
